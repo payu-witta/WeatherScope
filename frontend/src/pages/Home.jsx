@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import LocationInput from '../components/LocationInput.jsx';
+import WeatherDisplay from '../components/WeatherDisplay.jsx';
 import { getCurrentWeather } from '../services/api.js';
 
 export default function Home() {
@@ -24,9 +25,7 @@ export default function Home() {
     <div>
       <LocationInput onSearch={fetchWeather} loading={loading} />
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      {weatherData && (
-        <pre>{JSON.stringify(weatherData, null, 2)}</pre>
-      )}
+      {weatherData && <WeatherDisplay data={weatherData} />}
     </div>
   );
 }
