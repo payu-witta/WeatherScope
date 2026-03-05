@@ -1,5 +1,5 @@
 const WeatherRequest = require('../models/WeatherRequest');
-const { geocodeLocation, getCurrentWeather, formatCurrentWeather } = require('../../api_clients/openWeatherClient');
+const { fetchAndStoreWeather } = require('../services/weatherService');
 
 async function create(req, res) {
   try {
@@ -8,23 +8,17 @@ async function create(req, res) {
       return res.status(400).json({ error: 'location is required' });
     }
 
-    const geoInfo = await geocodeLocation(location);
-    const rawCurrent = await getCurrentWeather(geoInfo.lat, geoInfo.lon);
-    const current = formatCurrentWeather(rawCurrent, geoInfo);
+    const result = await fetchAndStoreWeather(location, notes);
 
-    const record = WeatherRequest.create({
-      location: `${geoInfo.name}, ${geoInfo.country}`,
-      latitude: geoInfo.lat,
-      longitude: geoInfo.lon,
-      temperature: current.temperature,
-      weather_condition: current.weather_condition,
-      humidity: current.humidity,
-      wind_speed: current.wind_speed,
-      notes: notes || null
+    res.status(201).json({
+      message: 'Weather data fetched and stored successfully',
+      record: result.record,
+      current: result.current
     });
-
-    res.status(201).json({ data: record, current });
   } catch (err) {
+    if (err.message?.includes('not found')) {
+      return res.status(404).json({ error: err.message });
+    }
     res.status(500).json({ error: err.message });
   }
 }
