@@ -3,6 +3,7 @@ import LocationInput from '../components/LocationInput.jsx';
 import WeatherDisplay from '../components/WeatherDisplay.jsx';
 import ForecastCard from '../components/ForecastCard.jsx';
 import MapEmbed from '../components/MapEmbed.jsx';
+import HistoricalWeather from '../components/HistoricalWeather.jsx';
 import { getCurrentWeather } from '../services/api.js';
 
 export default function Home() {
@@ -40,6 +41,12 @@ export default function Home() {
             longitude={weatherData.geo?.lon || weatherData.current?.longitude}
             locationName={weatherData.current?.location}
           />
+          {weatherData.current?.latitude && (
+            <HistoricalWeather
+              lat={weatherData.current.latitude}
+              lon={weatherData.current.longitude}
+            />
+          )}
         </>
       )}
     </div>

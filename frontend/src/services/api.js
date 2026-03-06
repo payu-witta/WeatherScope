@@ -11,4 +11,11 @@ export async function getCurrentWeather(location) {
   return res.data;
 }
 
+export async function getHistoricalWeather(lat, lon, startDate, endDate) {
+  const res = await api.get('/weather/historical', {
+    params: { lat, lon, start_date: startDate, end_date: endDate }
+  });
+  return res.data;
+}
+
 export default api;
