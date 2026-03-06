@@ -39,6 +39,42 @@ class WeatherRequest {
     return WeatherRequest.findById(result.lastInsertRowid);
   }
 
+  static update(id, data) {
+    const db = getDb();
+    const existing = WeatherRequest.findById(id);
+    if (!existing) return null;
+
+    const merged = {
+      location: data.location ?? existing.location,
+      latitude: data.latitude ?? existing.latitude,
+      longitude: data.longitude ?? existing.longitude,
+      start_date: data.start_date ?? existing.start_date,
+      end_date: data.end_date ?? existing.end_date,
+      temperature: data.temperature ?? existing.temperature,
+      weather_condition: data.weather_condition ?? existing.weather_condition,
+      humidity: data.humidity ?? existing.humidity,
+      wind_speed: data.wind_speed ?? existing.wind_speed,
+      notes: data.notes !== undefined ? data.notes : existing.notes
+    };
+
+    db.prepare(`
+      UPDATE weather_requests
+      SET location=@location, latitude=@latitude, longitude=@longitude,
+          start_date=@start_date, end_date=@end_date, temperature=@temperature,
+          weather_condition=@weather_condition, humidity=@humidity,
+          wind_speed=@wind_speed, notes=@notes, updated_at=datetime('now')
+      WHERE id=@id
+    `).run({ ...merged, id });
+
+    return WeatherRequest.findById(id);
+  }
+
+  static delete(id) {
+    const db = getDb();
+    const result = db.prepare(`DELETE FROM weather_requests WHERE id = ?`).run(id);
+    return result.changes > 0;
+  }
+
   static parse(row) {
     return {
       id: row.id,

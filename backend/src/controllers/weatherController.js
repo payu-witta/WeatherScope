@@ -44,6 +44,28 @@ async function getById(req, res) {
   }
 }
 
+async function update(req, res) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const updated = WeatherRequest.update(id, req.body);
+    if (!updated) return res.status(404).json({ error: `Record ${id} not found` });
+    res.json({ message: 'Record updated successfully', record: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+async function remove(req, res) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const deleted = WeatherRequest.delete(id);
+    if (!deleted) return res.status(404).json({ error: `Record ${id} not found` });
+    res.json({ message: `Record ${id} deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 async function getCurrent(req, res) {
   try {
     const location = req.query.location;
@@ -73,4 +95,4 @@ async function getHistorical(req, res) {
   }
 }
 
-module.exports = { create, getAll, getById, getCurrent, getHistorical };
+module.exports = { create, getAll, getById, update, remove, getCurrent, getHistorical };
