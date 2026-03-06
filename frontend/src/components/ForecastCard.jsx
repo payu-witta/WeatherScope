@@ -12,6 +12,8 @@ function getDayLabel(dateStr) {
 }
 
 export default function ForecastCard({ forecast }) {
+  if (!forecast || forecast.length === 0) return null;
+
   return (
     <div style={{ marginTop: '1.5rem' }}>
       <h3>5-Day Forecast</h3>
