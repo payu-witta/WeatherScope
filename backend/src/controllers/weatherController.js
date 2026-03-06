@@ -1,5 +1,6 @@
 const WeatherRequest = require('../models/WeatherRequest');
 const { fetchAndStoreWeather, fetchCurrentOnly, fetchHistoricalWeather } = require('../services/weatherService');
+const { searchVideos } = require('../../api_clients/youtubeClient');
 
 async function create(req, res) {
   try {
@@ -95,4 +96,22 @@ async function getHistorical(req, res) {
   }
 }
 
-module.exports = { create, getAll, getById, update, remove, getCurrent, getHistorical };
+async function getVideos(req, res) {
+  try {
+    const { location } = req.query;
+    if (!location) {
+      return res.status(400).json({ error: 'location query parameter is required' });
+    }
+
+    if (!process.env.YOUTUBE_API_KEY) {
+      return res.json({ videos: null, message: 'YouTube API key not configured' });
+    }
+
+    const videos = await searchVideos(location.trim());
+    res.json({ videos });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { create, getAll, getById, update, remove, getCurrent, getHistorical, getVideos };
