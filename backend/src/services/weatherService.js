@@ -5,9 +5,10 @@ const {
   formatCurrentWeather,
   formatForecast
 } = require('../../api_clients/openWeatherClient');
+const { getHistoricalWeather } = require('../../api_clients/openMeteoClient');
 const WeatherRequest = require('../models/WeatherRequest');
 
-async function fetchAndStoreWeather(location, notes) {
+async function fetchAndStoreWeather(location, startDate, endDate, notes) {
   const geoInfo = await geocodeLocation(location);
   const rawCurrent = await getCurrentWeather(geoInfo.lat, geoInfo.lon);
   const current = formatCurrentWeather(rawCurrent, geoInfo);
@@ -20,6 +21,8 @@ async function fetchAndStoreWeather(location, notes) {
     location: resolvedLocation,
     latitude: geoInfo.lat,
     longitude: geoInfo.lon,
+    start_date: startDate || new Date().toISOString().split('T')[0],
+    end_date: endDate || new Date().toISOString().split('T')[0],
     temperature: current.temperature,
     weather_condition: current.weather_condition,
     humidity: current.humidity,
@@ -40,4 +43,8 @@ async function fetchCurrentOnly(location) {
   return { current, forecast, geo: geoInfo };
 }
 
-module.exports = { fetchAndStoreWeather, fetchCurrentOnly };
+async function fetchHistoricalWeather(lat, lon, startDate, endDate) {
+  return getHistoricalWeather(lat, lon, startDate, endDate);
+}
+
+module.exports = { fetchAndStoreWeather, fetchCurrentOnly, fetchHistoricalWeather };

@@ -1,14 +1,14 @@
 const WeatherRequest = require('../models/WeatherRequest');
-const { fetchAndStoreWeather, fetchCurrentOnly } = require('../services/weatherService');
+const { fetchAndStoreWeather, fetchCurrentOnly, fetchHistoricalWeather } = require('../services/weatherService');
 
 async function create(req, res) {
   try {
-    const { location, notes } = req.body;
+    const { location, start_date, end_date, notes } = req.body;
     if (!location) {
       return res.status(400).json({ error: 'location is required' });
     }
 
-    const result = await fetchAndStoreWeather(location, notes);
+    const result = await fetchAndStoreWeather(location, start_date, end_date, notes);
 
     res.status(201).json({
       message: 'Weather data fetched and stored successfully',
@@ -33,13 +33,23 @@ async function getAll(req, res) {
   }
 }
 
+async function getById(req, res) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const record = WeatherRequest.findById(id);
+    if (!record) return res.status(404).json({ error: `Record ${id} not found` });
+    res.json({ record });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 async function getCurrent(req, res) {
   try {
     const location = req.query.location;
     if (!location) {
       return res.status(400).json({ error: 'location query parameter is required' });
     }
-
     const result = await fetchCurrentOnly(location.trim());
     res.json(result);
   } catch (err) {
@@ -50,4 +60,17 @@ async function getCurrent(req, res) {
   }
 }
 
-module.exports = { create, getAll, getCurrent };
+async function getHistorical(req, res) {
+  try {
+    const { lat, lon, start_date, end_date } = req.query;
+    if (!lat || !lon || !start_date || !end_date) {
+      return res.status(400).json({ error: 'lat, lon, start_date, end_date are required' });
+    }
+    const data = await fetchHistoricalWeather(parseFloat(lat), parseFloat(lon), start_date, end_date);
+    res.json({ historical: data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { create, getAll, getById, getCurrent, getHistorical };
