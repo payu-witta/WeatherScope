@@ -22,9 +22,13 @@ export default function Home() {
     }
   }
 
+  async function handleGeolocate(lat, lon) {
+    await fetchWeather(`${lat.toFixed(4)},${lon.toFixed(4)}`);
+  }
+
   return (
     <div>
-      <LocationInput onSearch={fetchWeather} loading={loading} />
+      <LocationInput onSearch={fetchWeather} onGeolocate={handleGeolocate} loading={loading} />
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {weatherData && (
         <>
