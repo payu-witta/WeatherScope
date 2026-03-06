@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import LocationInput from '../components/LocationInput.jsx';
 import WeatherDisplay from '../components/WeatherDisplay.jsx';
 import ForecastCard from '../components/ForecastCard.jsx';
+import MapEmbed from '../components/MapEmbed.jsx';
 import { getCurrentWeather } from '../services/api.js';
 
 export default function Home() {
@@ -34,6 +35,11 @@ export default function Home() {
         <>
           <WeatherDisplay data={weatherData} />
           <ForecastCard forecast={weatherData.forecast} />
+          <MapEmbed
+            latitude={weatherData.geo?.lat || weatherData.current?.latitude}
+            longitude={weatherData.geo?.lon || weatherData.current?.longitude}
+            locationName={weatherData.current?.location}
+          />
         </>
       )}
     </div>
