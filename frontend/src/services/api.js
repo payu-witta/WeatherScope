@@ -18,4 +18,19 @@ export async function getHistoricalWeather(lat, lon, startDate, endDate) {
   return res.data;
 }
 
+export async function createWeatherRecord(payload) {
+  const res = await api.post('/weather', payload);
+  return res.data;
+}
+
+export async function getAllRecords(params = {}) {
+  const res = await api.get('/weather', { params });
+  return res.data;
+}
+
+export async function deleteRecord(id) {
+  const res = await api.delete(`/weather/${id}`);
+  return res.data;
+}
+
 export default api;
