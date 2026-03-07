@@ -5,10 +5,12 @@ import ForecastCard from '../components/ForecastCard.jsx';
 import MapEmbed from '../components/MapEmbed.jsx';
 import HistoricalWeather from '../components/HistoricalWeather.jsx';
 import SavePanel from '../components/SavePanel.jsx';
+import YouTubeVideos from '../components/YouTubeVideos.jsx';
 import { getCurrentWeather } from '../services/api.js';
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState(null);
+  const [searchedLocation, setSearchedLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -18,6 +20,9 @@ export default function Home() {
     try {
       const data = await getCurrentWeather(location);
       setWeatherData(data);
+      setSearchedLocation(
+        data.current.location + (data.current.country ? ', ' + data.current.country : '')
+      );
     } catch (err) {
       setError(err.message || 'Failed to fetch weather');
     } finally {
@@ -43,6 +48,7 @@ export default function Home() {
             longitude={weatherData.geo?.lon || weatherData.current?.longitude}
             locationName={weatherData.current?.location}
           />
+          <YouTubeVideos location={searchedLocation} />
           {weatherData.current?.latitude && (
             <HistoricalWeather
               lat={weatherData.current.latitude}
