@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LocationInput from '../components/LocationInput.jsx';
 import WeatherDisplay from '../components/WeatherDisplay.jsx';
 import ForecastCard from '../components/ForecastCard.jsx';
@@ -7,12 +7,20 @@ import HistoricalWeather from '../components/HistoricalWeather.jsx';
 import SavePanel from '../components/SavePanel.jsx';
 import YouTubeVideos from '../components/YouTubeVideos.jsx';
 import { getCurrentWeather } from '../services/api.js';
+import { applyAtmosphere } from '../utils/atmosphere.js';
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState(null);
   const [searchedLocation, setSearchedLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (weatherData?.current) {
+      const { weather_condition, sunrise, sunset } = weatherData.current;
+      applyAtmosphere(weather_condition, sunrise, sunset);
+    }
+  }, [weatherData]);
 
   async function fetchWeather(location) {
     setLoading(true);
