@@ -1,15 +1,16 @@
 const WeatherRequest = require('../models/WeatherRequest');
 const { fetchAndStoreWeather, fetchCurrentOnly, fetchHistoricalWeather } = require('../services/weatherService');
 const { searchVideos } = require('../../api_clients/youtubeClient');
+const { createWeatherSchema, updateWeatherSchema, queryParamsSchema, validate } = require('../../utils/validation');
 
 async function create(req, res) {
   try {
-    const { location, start_date, end_date, notes } = req.body;
-    if (!location) {
-      return res.status(400).json({ error: 'location is required' });
+    const { valid, errors, data } = validate(createWeatherSchema, req.body);
+    if (!valid) {
+      return res.status(400).json({ error: 'Validation failed', details: errors });
     }
 
-    const result = await fetchAndStoreWeather(location, start_date, end_date, notes);
+    const result = await fetchAndStoreWeather(data.location, data.start_date, data.end_date, data.notes);
 
     res.status(201).json({
       message: 'Weather data fetched and stored successfully',
@@ -27,7 +28,11 @@ async function create(req, res) {
 
 async function getAll(req, res) {
   try {
-    const records = WeatherRequest.findAll();
+    const { valid, errors, data: params } = validate(queryParamsSchema, req.query);
+    if (!valid) {
+      return res.status(400).json({ error: 'Invalid query parameters', details: errors });
+    }
+    const records = WeatherRequest.findAll({ limit: params.limit, offset: params.offset });
     res.json({ records });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -48,7 +53,11 @@ async function getById(req, res) {
 async function update(req, res) {
   try {
     const id = parseInt(req.params.id, 10);
-    const updated = WeatherRequest.update(id, req.body);
+    const { valid, errors, data } = validate(updateWeatherSchema, req.body);
+    if (!valid) {
+      return res.status(400).json({ error: 'Validation failed', details: errors });
+    }
+    const updated = WeatherRequest.update(id, data);
     if (!updated) return res.status(404).json({ error: `Record ${id} not found` });
     res.json({ message: 'Record updated successfully', record: updated });
   } catch (err) {
@@ -102,11 +111,9 @@ async function getVideos(req, res) {
     if (!location) {
       return res.status(400).json({ error: 'location query parameter is required' });
     }
-
     if (!process.env.YOUTUBE_API_KEY) {
       return res.json({ videos: null, message: 'YouTube API key not configured' });
     }
-
     const videos = await searchVideos(location.trim());
     res.json({ videos });
   } catch (err) {
