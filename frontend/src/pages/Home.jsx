@@ -6,6 +6,7 @@ import MapEmbed from '../components/MapEmbed.jsx';
 import HistoricalWeather from '../components/HistoricalWeather.jsx';
 import SavePanel from '../components/SavePanel.jsx';
 import YouTubeVideos from '../components/YouTubeVideos.jsx';
+import TravelTips from '../components/TravelTips.jsx';
 import { getCurrentWeather } from '../services/api.js';
 import { applyAtmosphere } from '../utils/atmosphere.js';
 
@@ -49,6 +50,7 @@ export default function Home() {
       {weatherData && (
         <>
           <WeatherDisplay data={weatherData} />
+          <TravelTips data={weatherData} />
           <ForecastCard forecast={weatherData.forecast} />
           <SavePanel weatherData={weatherData} />
           <MapEmbed
