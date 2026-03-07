@@ -2,7 +2,7 @@ const WeatherRequest = require('../models/WeatherRequest');
 const { fetchAndStoreWeather, fetchCurrentOnly, fetchHistoricalWeather } = require('../services/weatherService');
 const { searchVideos } = require('../../api_clients/youtubeClient');
 const { createWeatherSchema, updateWeatherSchema, queryParamsSchema, validate } = require('../../utils/validation');
-const { toJSON, toCSV, toXML, toMarkdown } = require('../../utils/exportUtils');
+const { toJSON, toCSV, toXML, toMarkdown, toPDF } = require('../../utils/exportUtils');
 
 async function create(req, res) {
   try {
@@ -32,10 +32,14 @@ async function getAll(req, res) {
   }
 }
 
-async function exportData(req, res) {
+async function exportData(req, res, next) {
   try {
     const format = req.query.format || 'json';
     const records = WeatherRequest.findAll();
+    const SUPPORTED = ['json', 'csv', 'xml', 'markdown', 'pdf'];
+    if (!SUPPORTED.includes(format)) {
+      return res.status(400).json({ error: `Unsupported format. Use: ${SUPPORTED.join(', ')}` });
+    }
     if (format === 'json') {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', 'attachment; filename="weather-records.json"');
@@ -56,9 +60,14 @@ async function exportData(req, res) {
       res.setHeader('Content-Disposition', 'attachment; filename="weather-records.md"');
       return res.send(toMarkdown(records));
     }
-    res.status(400).json({ error: 'Unsupported format. Use: json, csv, xml, markdown' });
+    if (format === 'pdf') {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="weather-records.pdf"');
+      const pdfBuffer = await toPDF(records);
+      return res.send(pdfBuffer);
+    }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 }
 
