@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS weather_requests (
   humidity INTEGER,
   wind_speed REAL,
   notes TEXT,
+  forecast_json TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );

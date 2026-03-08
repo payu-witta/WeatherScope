@@ -13,13 +13,24 @@ class WeatherRequest {
     return row ? WeatherRequest.parse(row) : null;
   }
 
+  static count() {
+    const db = getDb();
+    return db.prepare(`SELECT COUNT(*) as n FROM weather_requests`).get().n;
+  }
+
+  static exportAll() {
+    const db = getDb();
+    const rows = db.prepare(`SELECT * FROM weather_requests ORDER BY created_at DESC`).all();
+    return rows.map(r => WeatherRequest.parse(r));
+  }
+
   static create(data) {
     const db = getDb();
     const stmt = db.prepare(`
       INSERT INTO weather_requests
-        (location, latitude, longitude, start_date, end_date, temperature, weather_condition, humidity, wind_speed, notes)
+        (location, latitude, longitude, start_date, end_date, temperature, weather_condition, humidity, wind_speed, notes, forecast_json)
       VALUES
-        (@location, @latitude, @longitude, @start_date, @end_date, @temperature, @weather_condition, @humidity, @wind_speed, @notes)
+        (@location, @latitude, @longitude, @start_date, @end_date, @temperature, @weather_condition, @humidity, @wind_speed, @notes, @forecast_json)
     `);
 
     const payload = {
@@ -32,7 +43,8 @@ class WeatherRequest {
       weather_condition: data.weather_condition ?? null,
       humidity: data.humidity ?? null,
       wind_speed: data.wind_speed ?? null,
-      notes: data.notes ?? null
+      notes: data.notes ?? null,
+      forecast_json: data.forecast ? JSON.stringify(data.forecast) : null
     };
 
     const result = stmt.run(payload);
@@ -88,6 +100,7 @@ class WeatherRequest {
       humidity: row.humidity,
       wind_speed: row.wind_speed,
       notes: row.notes,
+      forecast: row.forecast_json ? JSON.parse(row.forecast_json) : null,
       created_at: row.created_at,
       updated_at: row.updated_at
     };
