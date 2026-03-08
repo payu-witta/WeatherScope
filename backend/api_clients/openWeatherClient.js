@@ -14,12 +14,17 @@ async function geocodeLocation(location) {
 
   const coordMatch = location.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
   if (coordMatch) {
-    return {
-      lat: parseFloat(coordMatch[1]),
-      lon: parseFloat(coordMatch[2]),
-      name: location,
-      country: ''
-    };
+    return { lat: parseFloat(coordMatch[1]), lon: parseFloat(coordMatch[2]), name: location, country: '' };
+  }
+
+  const zipMatch = location.match(/^(\d{5})(?:,([A-Z]{2}))?$/);
+  if (zipMatch) {
+    const zip = zipMatch[1];
+    const country = zipMatch[2] || 'US';
+    const response = await axios.get(`${GEO_URL}/zip`, {
+      params: { zip: `${zip},${country}`, appid: apiKey }
+    });
+    return { lat: response.data.lat, lon: response.data.lon, name: response.data.name, country: response.data.country };
   }
 
   const response = await axios.get(`${GEO_URL}/direct`, {
@@ -31,13 +36,7 @@ async function geocodeLocation(location) {
   }
 
   const result = response.data[0];
-  return {
-    lat: result.lat,
-    lon: result.lon,
-    name: result.name,
-    country: result.country,
-    state: result.state
-  };
+  return { lat: result.lat, lon: result.lon, name: result.name, country: result.country, state: result.state };
 }
 
 async function getCurrentWeather(lat, lon) {
@@ -54,6 +53,24 @@ async function getForecast(lat, lon) {
     params: { lat, lon, appid: apiKey, units: 'metric', cnt: 40 }
   });
   return response.data;
+}
+
+async function getUVIndex(lat, lon) {
+  try {
+    const apiKey = getApiKey();
+    const response = await axios.get(`${BASE_URL}/uvi`, {
+      params: { lat, lon, appid: apiKey }
+    });
+    const value = response.data.value;
+    let category = 'Low';
+    if (value >= 11) category = 'Extreme';
+    else if (value >= 8) category = 'Very High';
+    else if (value >= 6) category = 'High';
+    else if (value >= 3) category = 'Moderate';
+    return { value: Math.round(value * 10) / 10, category };
+  } catch {
+    return null;
+  }
 }
 
 function formatCurrentWeather(data, geoInfo) {
@@ -83,29 +100,17 @@ function formatCurrentWeather(data, geoInfo) {
 
 function formatForecast(data) {
   const dailyMap = {};
-
   for (const item of data.list) {
-    const date = new Date(item.dt * 1000);
-    const dateStr = date.toISOString().split('T')[0];
-
-    if (!dailyMap[dateStr]) {
-      dailyMap[dateStr] = {
-        date: dateStr,
-        temps: [],
-        conditions: [],
-        humidity: [],
-        wind: [],
-        icons: []
-      };
+    const date = new Date(item.dt * 1000).toISOString().split('T')[0];
+    if (!dailyMap[date]) {
+      dailyMap[date] = { date, temps: [], conditions: [], humidity: [], wind: [], icons: [] };
     }
-
-    dailyMap[dateStr].temps.push(item.main.temp);
-    dailyMap[dateStr].conditions.push(item.weather[0].main);
-    dailyMap[dateStr].humidity.push(item.main.humidity);
-    dailyMap[dateStr].wind.push(item.wind.speed * 3.6);
-    dailyMap[dateStr].icons.push(item.weather[0].icon);
+    dailyMap[date].temps.push(item.main.temp);
+    dailyMap[date].conditions.push(item.weather[0].main);
+    dailyMap[date].humidity.push(item.main.humidity);
+    dailyMap[date].wind.push(item.wind.speed * 3.6);
+    dailyMap[date].icons.push(item.weather[0].icon);
   }
-
   const today = new Date().toISOString().split('T')[0];
   return Object.entries(dailyMap)
     .filter(([date]) => date >= today)
@@ -122,4 +127,4 @@ function formatForecast(data) {
     }));
 }
 
-module.exports = { geocodeLocation, getCurrentWeather, getForecast, formatCurrentWeather, formatForecast };
+module.exports = { geocodeLocation, getCurrentWeather, getForecast, getUVIndex, formatCurrentWeather, formatForecast };
