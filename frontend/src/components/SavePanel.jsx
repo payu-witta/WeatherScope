@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createWeatherRecord } from '../services/api.js';
+import ErrorMessage from './ErrorMessage.jsx';
 
 export default function SavePanel({ weatherData }) {
   const today = new Date().toISOString().split('T')[0];
@@ -47,7 +48,7 @@ export default function SavePanel({ weatherData }) {
   return (
     <div style={{ marginTop: '1.5rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
       <h3>Save to History</h3>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <ErrorMessage message={error} onDismiss={() => setError(null)} />
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <div>

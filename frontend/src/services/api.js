@@ -33,4 +33,18 @@ export async function deleteRecord(id) {
   return res.data;
 }
 
+export async function getRecord(id) {
+  const res = await api.get(`/weather/${id}`);
+  return res.data;
+}
+
+export async function updateRecord(id, payload) {
+  const res = await api.put(`/weather/${id}`, payload);
+  return res.data;
+}
+
+export function getExportUrl(format) {
+  return `/api/weather/export?format=${format}`;
+}
+
 export default api;

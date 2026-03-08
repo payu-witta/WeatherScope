@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getHistoricalWeather } from '../services/api.js';
+import ErrorMessage from './ErrorMessage.jsx';
 
 export default function HistoricalWeather({ lat, lon }) {
   const [startDate, setStartDate] = useState('');
@@ -42,7 +43,7 @@ export default function HistoricalWeather({ lat, lon }) {
         <button type="submit" disabled={loading}>{loading ? 'Loading…' : 'Fetch'}</button>
       </form>
 
-      {error && <p style={{ color: 'red', marginTop: '0.5rem' }}>{error}</p>}
+      <ErrorMessage message={error} onDismiss={() => setError(null)} />
 
       {data && data.length > 0 && (
         <div style={{ marginTop: '1rem' }}>

@@ -7,6 +7,7 @@ import HistoricalWeather from '../components/HistoricalWeather.jsx';
 import SavePanel from '../components/SavePanel.jsx';
 import YouTubeVideos from '../components/YouTubeVideos.jsx';
 import TravelTips from '../components/TravelTips.jsx';
+import ErrorMessage from '../components/ErrorMessage.jsx';
 import { getCurrentWeather } from '../services/api.js';
 import { applyAtmosphere } from '../utils/atmosphere.js';
 
@@ -46,7 +47,7 @@ export default function Home() {
   return (
     <div>
       <LocationInput onSearch={fetchWeather} onGeolocate={handleGeolocate} loading={loading} />
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <ErrorMessage message={error} onDismiss={() => setError(null)} />
       {weatherData && (
         <>
           <WeatherDisplay data={weatherData} />
