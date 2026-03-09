@@ -40,7 +40,8 @@ async function fetchAndStoreWeather(location, startDate, endDate, notes) {
     weather_condition: current.weather_condition,
     humidity: current.humidity,
     wind_speed: current.wind_speed,
-    notes: notes || null
+    notes: notes || null,
+    forecast
   });
 
   return {

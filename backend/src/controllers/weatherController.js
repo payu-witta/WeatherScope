@@ -26,7 +26,8 @@ async function getAll(req, res) {
     const { valid, errors, data: params } = validate(queryParamsSchema, req.query);
     if (!valid) return res.status(400).json({ error: 'Invalid query parameters', details: errors });
     const records = WeatherRequest.findAll({ limit: params.limit, offset: params.offset });
-    res.json({ records });
+    const total = WeatherRequest.count();
+    res.json({ records, total, limit: params.limit, offset: params.offset });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -34,11 +35,12 @@ async function getAll(req, res) {
 
 async function exportData(req, res, next) {
   try {
-    const format = req.query.format || 'json';
-    const records = WeatherRequest.findAll();
+    const fmt = req.query.format || 'json';
+    const format = fmt === 'md' ? 'markdown' : fmt;
+    const records = WeatherRequest.exportAll();
     const SUPPORTED = ['json', 'csv', 'xml', 'markdown', 'pdf'];
     if (!SUPPORTED.includes(format)) {
-      return res.status(400).json({ error: `Unsupported format. Use: ${SUPPORTED.join(', ')}` });
+      return res.status(400).json({ error: `Unsupported format. Use: ${SUPPORTED.join(', ')} (or md)` });
     }
     if (format === 'json') {
       res.setHeader('Content-Type', 'application/json');
