@@ -57,9 +57,11 @@ export default function MapEmbed({ latitude, longitude, locationName }) {
   if (!latitude || !longitude) return null;
 
   return (
-    <div style={{ marginTop: '1.5rem' }}>
-      <h3>Map</h3>
-      <div ref={mapRef} style={{ width: '100%', height: '280px', borderRadius: '8px' }} />
+    <div style={{ marginTop: '1.5rem' }} className="fade-in">
+      <h3 style={{ marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.6 }}>
+        Map
+      </h3>
+      <div ref={mapRef} style={{ width: '100%', height: '300px', borderRadius: '0.75rem', border: '1px solid var(--atmo-border)', overflow: 'hidden' }} />
     </div>
   );
 }

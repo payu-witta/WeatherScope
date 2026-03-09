@@ -38,30 +38,32 @@ export default function SavePanel({ weatherData }) {
 
   if (saved) {
     return (
-      <div style={{ marginTop: '1.5rem' }}>
-        <p style={{ color: 'green' }}>✓ Record saved successfully</p>
-        <button onClick={() => setSaved(false)}>Save another</button>
+      <div className="card fade-in" style={{ marginTop: '1.5rem' }}>
+        <p style={{ color: 'var(--atmo-accent)', marginBottom: '0.75rem' }}>✓ Record saved successfully</p>
+        <button className="btn" onClick={() => setSaved(false)}>Save another</button>
       </div>
     );
   }
 
   return (
-    <div style={{ marginTop: '1.5rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h3>Save to History</h3>
+    <div className="card fade-in" style={{ marginTop: '1.5rem' }}>
+      <h3 style={{ marginBottom: '1rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.6 }}>
+        Save to History
+      </h3>
       <ErrorMessage message={error} onDismiss={() => setError(null)} />
-      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: error ? '0.75rem' : 0 }}>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem' }}>Start Date</label>
-            <input type="date" value={startDate} max={today} onChange={e => setStartDate(e.target.value)} />
+          <div style={{ flex: 1 }}>
+            <label style={{ display: 'block', fontSize: '0.72rem', opacity: 0.6, marginBottom: '0.25rem' }}>Start Date</label>
+            <input type="date" value={startDate} max={today} onChange={e => setStartDate(e.target.value)} style={{ width: '100%' }} />
           </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem' }}>End Date</label>
-            <input type="date" value={endDate} max={today} onChange={e => setEndDate(e.target.value)} />
+          <div style={{ flex: 1 }}>
+            <label style={{ display: 'block', fontSize: '0.72rem', opacity: 0.6, marginBottom: '0.25rem' }}>End Date</label>
+            <input type="date" value={endDate} max={today} onChange={e => setEndDate(e.target.value)} style={{ width: '100%' }} />
           </div>
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem' }}>Notes</label>
+          <label style={{ display: 'block', fontSize: '0.72rem', opacity: 0.6, marginBottom: '0.25rem' }}>Notes</label>
           <input
             type="text"
             placeholder="Optional note…"
@@ -70,7 +72,7 @@ export default function SavePanel({ weatherData }) {
             style={{ width: '100%' }}
           />
         </div>
-        <button type="submit" disabled={saving}>
+        <button className="btn btn-accent" type="submit" disabled={saving} style={{ alignSelf: 'flex-start' }}>
           {saving ? 'Saving…' : 'Save to History'}
         </button>
       </form>
