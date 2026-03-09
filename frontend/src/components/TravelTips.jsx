@@ -40,6 +40,12 @@ function getTips(current, forecast) {
     tips.push({ icon: '🌫', text: 'Foggy conditions — reduced visibility on roads; check transport status before travelling.', severity: 'medium' });
   }
 
+  if (c.uv_index?.value >= 8) {
+    tips.push({ icon: '🕶', text: `UV index ${c.uv_index.value} (${c.uv_index.category}) — wear SPF 50+, sunglasses, and limit midday sun exposure.`, severity: 'high' });
+  } else if (c.uv_index?.value >= 3) {
+    tips.push({ icon: '☀', text: `UV index ${c.uv_index.value} (${c.uv_index.category}) — sunscreen recommended if spending time outdoors.`, severity: 'low' });
+  }
+
   const order = { high: 0, medium: 1, low: 2 };
   tips.sort((a, b) => order[a.severity] - order[b.severity]);
   return tips.slice(0, 5);
