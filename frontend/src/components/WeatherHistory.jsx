@@ -38,7 +38,7 @@ export default function WeatherHistory() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ margin: 0 }}>Saved Records</h2>
+        <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 600 }}>Saved Records</h2>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           {['json', 'csv', 'xml', 'md', 'pdf'].map(fmt => (
             <a
