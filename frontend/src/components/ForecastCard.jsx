@@ -1,7 +1,5 @@
 import React from 'react';
 
-const OWM_ICON = code => `https://openweathermap.org/img/wn/${code}@2x.png`;
-
 function getDayLabel(dateStr) {
   const date = new Date(dateStr + 'T12:00:00');
   const today = new Date();
@@ -13,36 +11,95 @@ function getDayLabel(dateStr) {
   return date.toLocaleDateString([], { weekday: 'short' });
 }
 
+function ForecastDay({ day }) {
+  const iconUrl = day.icon
+    ? `https://openweathermap.org/img/wn/${day.icon}@2x.png`
+    : null;
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '0.5rem',
+      padding: '1.25rem 1rem',
+      minWidth: '80px',
+      flexShrink: 0,
+    }}>
+      <span style={{
+        fontSize: '0.6875rem',
+        fontWeight: 500,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: 'var(--atmo-muted)',
+      }}>
+        {getDayLabel(day.date)}
+      </span>
+
+      {iconUrl ? (
+        <img src={iconUrl} alt={day.weather_condition} style={{ width: '2.5rem', height: '2.5rem' }} />
+      ) : (
+        <div style={{ width: '2.5rem', height: '2.5rem' }} />
+      )}
+
+      <p style={{
+        fontSize: '0.625rem',
+        color: 'var(--atmo-faint)',
+        textAlign: 'center',
+        textTransform: 'capitalize',
+        lineHeight: 1.3,
+        maxWidth: '70px',
+      }}>
+        {day.weather_condition}
+      </p>
+
+      <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'baseline' }}>
+        <span style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--atmo-text)' }}>
+          {day.temp_max}°
+        </span>
+        <span style={{ fontSize: '0.8125rem', color: 'var(--atmo-muted)' }}>
+          {day.temp_min}°
+        </span>
+      </div>
+
+      {day.humidity != null && (
+        <span style={{ fontSize: '0.625rem', color: 'var(--atmo-faint)' }}>
+          {day.humidity}% RH
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function ForecastCard({ forecast }) {
   if (!forecast || forecast.length === 0) return null;
 
   return (
-    <div style={{ marginTop: '1.5rem' }} className="fade-in stagger-2">
-      <h3 style={{ marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.6 }}>
+    <div className="fade-in">
+      <p style={{
+        fontFamily: 'var(--font-body)',
+        fontSize: '0.6875rem',
+        fontWeight: 500,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: 'var(--atmo-muted)',
+        marginBottom: '0.5rem',
+      }}>
         5-Day Forecast
-      </h3>
-      <div style={{ display: 'flex', gap: '0.625rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+      </p>
+
+      <div className="scroll-x" style={{
+        display: 'flex',
+        borderTop: '1px solid var(--atmo-border)',
+        borderBottom: '1px solid var(--atmo-border)',
+      }}>
         {forecast.map((day, i) => (
-          <div key={day.date} className={`card stagger-${i + 1}`} style={{
-            minWidth: '90px',
-            textAlign: 'center',
-            flexShrink: 0,
-            padding: '0.75rem 0.5rem'
-          }}>
-            <p style={{ fontWeight: 600, fontSize: '0.8rem' }}>{getDayLabel(day.date)}</p>
-            {day.icon && (
-              <img
-                src={OWM_ICON(day.icon)}
-                alt={day.weather_condition}
-                width={40}
-                height={40}
-                style={{ margin: '0.1rem auto', display: 'block' }}
-              />
+          <React.Fragment key={day.date}>
+            {i > 0 && (
+              <div style={{ width: '1px', background: 'var(--atmo-border)', flexShrink: 0, alignSelf: 'stretch' }} />
             )}
-            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>{day.temp_max}°</p>
-            <p style={{ fontSize: '0.75rem', opacity: 0.55 }}>{day.temp_min}°</p>
-            <p style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '0.2rem' }}>{day.weather_condition}</p>
-          </div>
+            <ForecastDay day={day} />
+          </React.Fragment>
         ))}
       </div>
     </div>

@@ -27,7 +27,7 @@ async function getAll(req, res) {
     if (!valid) return res.status(400).json({ error: 'Invalid query parameters', details: errors });
     const records = WeatherRequest.findAll({ limit: params.limit, offset: params.offset });
     const total = WeatherRequest.count();
-    res.json({ records, total, limit: params.limit, offset: params.offset });
+    res.json({ records, pagination: { total, limit: params.limit, offset: params.offset } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

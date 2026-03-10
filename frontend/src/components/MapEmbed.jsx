@@ -29,16 +29,18 @@ export default function MapEmbed({ latitude, longitude, locationName }) {
       const map = L.map(mapRef.current, {
         center: [latitude, longitude],
         zoom: 10,
-        scrollWheelZoom: false
+        zoomControl: true,
+        scrollWheelZoom: false,
       });
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18,
       }).addTo(map);
 
       L.marker([latitude, longitude])
         .addTo(map)
-        .bindPopup(`<strong>${locationName || 'Location'}</strong>`)
+        .bindPopup(`<strong>${locationName || 'Location'}</strong><br/>${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
         .openPopup();
 
       mapInstanceRef.current = map;
@@ -57,11 +59,26 @@ export default function MapEmbed({ latitude, longitude, locationName }) {
   if (!latitude || !longitude) return null;
 
   return (
-    <div style={{ marginTop: '1.5rem' }} className="fade-in">
-      <h3 style={{ marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.6 }}>
-        Map
-      </h3>
-      <div ref={mapRef} style={{ width: '100%', height: '300px', borderRadius: '0.75rem', border: '1px solid var(--atmo-border)', overflow: 'hidden' }} />
+    <div className="fade-in">
+      <p style={{
+        fontFamily: 'var(--font-body)',
+        fontSize: '0.6875rem',
+        fontWeight: 500,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: 'var(--atmo-muted)',
+        marginBottom: '0.75rem',
+      }}>
+        Location · OpenStreetMap
+      </p>
+      <div
+        ref={mapRef}
+        style={{ width: '100%', height: '280px', borderRadius: '0.75rem', overflow: 'hidden' }}
+        aria-label={`Map showing ${locationName}`}
+      />
+      <p style={{ fontSize: '0.6875rem', color: 'var(--atmo-faint)', marginTop: '0.5rem', textAlign: 'center' }}>
+        {latitude.toFixed(4)}°, {longitude.toFixed(4)}° · Scroll to zoom disabled
+      </p>
     </div>
   );
 }

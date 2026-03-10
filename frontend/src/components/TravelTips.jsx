@@ -6,6 +6,16 @@ function getTips(current, forecast) {
   const condition = (c.weather_condition || '').toLowerCase();
   const description = (c.description || '').toLowerCase();
 
+  if (c.uv_index) {
+    if (c.uv_index.value >= 8) {
+      tips.push({ icon: '☀', text: `UV index is ${c.uv_index.value} (${c.uv_index.category}) — wear SPF 50+, a hat, and avoid midday sun.`, severity: 'high' });
+    } else if (c.uv_index.value >= 6) {
+      tips.push({ icon: '☀', text: `UV index is ${c.uv_index.value} (${c.uv_index.category}) — apply broad-spectrum sunscreen before heading out.`, severity: 'medium' });
+    } else if (c.uv_index.value >= 3) {
+      tips.push({ icon: '☀', text: `UV index is ${c.uv_index.value} (Moderate) — sunscreen recommended for prolonged outdoor time.`, severity: 'low' });
+    }
+  }
+
   if (c.temperature >= 35) {
     tips.push({ icon: '🌡', text: `Extreme heat at ${c.temperature}°C — stay well hydrated, seek shade, and avoid strenuous activity between 11am–3pm.`, severity: 'high' });
   } else if (c.temperature >= 28) {
@@ -21,7 +31,7 @@ function getTips(current, forecast) {
   }
 
   if (condition.includes('thunder') || condition.includes('storm')) {
-    tips.push({ icon: '⛈', text: 'Thunderstorm conditions — avoid open areas, tall trees, and water.', severity: 'high' });
+    tips.push({ icon: '⛈', text: 'Thunderstorm conditions — avoid open areas, tall trees, and water. Postpone outdoor plans if possible.', severity: 'high' });
   } else if (condition.includes('snow') || description.includes('snow')) {
     tips.push({ icon: '🌨', text: 'Snow expected — waterproof boots, warm layers, and allow extra travel time on roads.', severity: 'high' });
   } else if (condition.includes('rain') || condition.includes('shower') || description.includes('rain')) {
@@ -31,25 +41,74 @@ function getTips(current, forecast) {
   }
 
   if (c.wind_speed >= 60) {
-    tips.push({ icon: '💨', text: `Strong winds at ${c.wind_speed} km/h — secure loose items and be cautious near exposed areas.`, severity: 'high' });
+    tips.push({ icon: '💨', text: `Strong winds at ${c.wind_speed} km/h — secure loose items, be cautious near exposed clifftops or elevated areas.`, severity: 'high' });
   } else if (c.wind_speed >= 40) {
-    tips.push({ icon: '💨', text: `Breezy at ${c.wind_speed} km/h — outdoor activities may be uncomfortable.`, severity: 'medium' });
+    tips.push({ icon: '💨', text: `Breezy at ${c.wind_speed} km/h — outdoor dining and activities may be uncomfortable; secure belongings.`, severity: 'medium' });
   }
 
-  if (condition.includes('fog') || condition.includes('mist')) {
-    tips.push({ icon: '🌫', text: 'Foggy conditions — reduced visibility on roads; check transport status before travelling.', severity: 'medium' });
+  if (c.visibility != null && c.visibility < 1) {
+    tips.push({ icon: '🌫', text: `Very low visibility (${c.visibility} km) — drive with headlights on and allow significantly more travel time.`, severity: 'high' });
+  } else if (condition.includes('fog') || condition.includes('mist')) {
+    tips.push({ icon: '🌫', text: 'Foggy or misty conditions — reduced visibility on roads and at airports; check transport status before travelling.', severity: 'medium' });
+  } else if (condition.includes('haze') || condition.includes('dust') || condition.includes('smoke') || condition.includes('sand')) {
+    tips.push({ icon: '🌫', text: 'Hazy air — if you have respiratory sensitivities, consider limiting outdoor exposure.', severity: 'medium' });
   }
 
-  if (c.uv_index?.value >= 8) {
-    tips.push({ icon: '🕶', text: `UV index ${c.uv_index.value} (${c.uv_index.category}) — wear SPF 50+, sunglasses, and limit midday sun exposure.`, severity: 'high' });
-  } else if (c.uv_index?.value >= 3) {
-    tips.push({ icon: '☀', text: `UV index ${c.uv_index.value} (${c.uv_index.category}) — sunscreen recommended if spending time outdoors.`, severity: 'low' });
+  if (c.air_quality) {
+    const cat = c.air_quality.category;
+    if (cat === 'Hazardous' || cat === 'Very Unhealthy') {
+      tips.push({ icon: '😷', text: `Air quality is ${cat} (AQI ${c.air_quality.us_aqi}) — wear an N95 mask outdoors and minimise time outside.`, severity: 'high' });
+    } else if (cat === 'Unhealthy') {
+      tips.push({ icon: '😷', text: `Air quality is Unhealthy (AQI ${c.air_quality.us_aqi}) — sensitive groups should avoid prolonged outdoor exertion.`, severity: 'medium' });
+    } else if (cat === 'Unhealthy for Sensitive Groups') {
+      tips.push({ icon: '😷', text: `Air quality is moderate (AQI ${c.air_quality.us_aqi}) — those with asthma or heart conditions should limit outdoor activity.`, severity: 'low' });
+    }
+  }
+
+  if (forecast && forecast.length > 0) {
+    const upcomingRain = forecast.slice(1, 3).some(d =>
+      d.weather_condition?.toLowerCase().includes('rain') ||
+      d.weather_condition?.toLowerCase().includes('storm')
+    );
+    const currentlyClear = !condition.includes('rain') && !condition.includes('storm');
+    if (upcomingRain && currentlyClear) {
+      tips.push({ icon: '📅', text: 'Clear today but rain is forecast in the next 1–2 days — plan outdoor activities for today if possible.', severity: 'low' });
+    }
+  }
+
+  if (c.feels_like != null && c.temperature != null) {
+    const diff = c.temperature - c.feels_like;
+    if (diff >= 6) {
+      tips.push({ icon: '🌬', text: `Feels like ${c.feels_like}°C despite ${c.temperature}°C actual — wind chill is significant; dress warmer than the temperature suggests.`, severity: 'low' });
+    } else if (diff <= -4) {
+      tips.push({ icon: '💧', text: `Feels like ${c.feels_like}°C — high humidity makes it feel hotter than ${c.temperature}°C actual; hydrate more than usual.`, severity: 'low' });
+    }
+  }
+
+  if (c.humidity >= 85 && c.temperature >= 25) {
+    tips.push({ icon: '💧', text: `High humidity (${c.humidity}%) combined with heat — physical exertion will feel harder; take regular breaks and drink water.`, severity: 'medium' });
   }
 
   const order = { high: 0, medium: 1, low: 2 };
   tips.sort((a, b) => order[a.severity] - order[b.severity]);
   return tips.slice(0, 5);
 }
+
+const severityColor = {
+  high: 'rgba(239,68,68,0.12)',
+  medium: 'rgba(251,191,36,0.10)',
+  low: 'rgba(255,255,255,0.05)',
+};
+const severityBorder = {
+  high: 'rgba(239,68,68,0.22)',
+  medium: 'rgba(251,191,36,0.18)',
+  low: 'var(--atmo-border)',
+};
+const severityText = {
+  high: '#fca5a5',
+  medium: '#fde68a',
+  low: 'var(--atmo-muted)',
+};
 
 export default function TravelTips({ data }) {
   if (!data?.current) return null;
@@ -58,20 +117,40 @@ export default function TravelTips({ data }) {
   if (tips.length === 0) return null;
 
   return (
-    <div style={{ marginTop: '1.5rem' }}>
-      <h3 style={{ marginBottom: '0.75rem' }}>Travel Tips</h3>
+    <div className="fade-in">
+      <p style={{
+        fontFamily: 'var(--font-body)',
+        fontSize: '0.6875rem',
+        fontWeight: 500,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: 'var(--atmo-muted)',
+        marginBottom: '0.75rem',
+      }}>
+        Travel Tips
+      </p>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {tips.map((tip, i) => (
           <div key={i} style={{
             display: 'flex',
+            alignItems: 'flex-start',
             gap: '0.75rem',
             padding: '0.75rem 1rem',
             borderRadius: '0.5rem',
-            background: tip.severity === 'high' ? 'rgba(239,68,68,0.1)' : tip.severity === 'medium' ? 'rgba(251,191,36,0.08)' : 'rgba(255,255,255,0.04)',
-            border: `1px solid ${tip.severity === 'high' ? 'rgba(239,68,68,0.2)' : tip.severity === 'medium' ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.08)'}`,
+            background: severityColor[tip.severity],
+            border: `1px solid ${severityBorder[tip.severity]}`,
           }}>
-            <span>{tip.icon}</span>
-            <p style={{ fontSize: '0.8125rem', lineHeight: 1.5 }}>{tip.text}</p>
+            <span style={{ fontSize: '1rem', flexShrink: 0, marginTop: '0.05rem' }}>
+              {tip.icon}
+            </span>
+            <p style={{
+              fontSize: '0.8125rem',
+              color: severityText[tip.severity],
+              lineHeight: 1.5,
+            }}>
+              {tip.text}
+            </p>
           </div>
         ))}
       </div>
