@@ -34,7 +34,7 @@ export default function Home() {
         data.current.location + (data.current.country ? ', ' + data.current.country : '')
       );
     } catch (err) {
-      setError(err.message || 'Failed to fetch weather');
+      setError(err.response?.data?.error || err.message || 'Failed to fetch weather');
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export default function Home() {
       <LocationInput onSearch={fetchWeather} onGeolocate={handleGeolocate} loading={loading} />
       <ErrorMessage message={error} onDismiss={() => setError(null)} />
       {weatherData && (
-        <>
+        <div className="fade-in">
           <WeatherDisplay data={weatherData} />
           <TravelTips data={weatherData} />
           <ForecastCard forecast={weatherData.forecast} />
@@ -66,7 +66,7 @@ export default function Home() {
               lon={weatherData.current.longitude}
             />
           )}
-        </>
+        </div>
       )}
     </div>
   );
