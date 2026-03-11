@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS weather_requests (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   location TEXT NOT NULL,
   latitude REAL,
   longitude REAL,
@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS weather_requests (
   wind_speed REAL,
   notes TEXT,
   forecast_json TEXT,
-  created_at TEXT DEFAULT (datetime('now')),
-  updated_at TEXT DEFAULT (datetime('now'))
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_weather_location ON weather_requests(location);

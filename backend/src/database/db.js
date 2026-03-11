@@ -1,32 +1,35 @@
-const { DatabaseSync } = require('node:sqlite');
-const path = require('path');
+const { Pool } = require('pg');
 const fs = require('fs');
+const path = require('path');
 
-const DATA_DIR = path.join(__dirname, '../../../data');
-const DB_PATH = path.join(DATA_DIR, 'weather.sqlite');
-const SCHEMA_PATH = path.join(__dirname, 'schema.sql');
+let pool;
 
-let db;
-
-function initializeDatabase() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+async function initializeDatabase() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set');
   }
 
-  db = new DatabaseSync(DB_PATH);
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
 
-  const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
-  db.exec(schema);
-
-  console.log('Database initialized at:', DB_PATH);
-  return db;
+  // Verify connection
+  const client = await pool.connect();
+  try {
+    const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+    await client.query(schema);
+    console.log('Database initialized successfully');
+  } finally {
+    client.release();
+  }
 }
 
 function getDb() {
-  if (!db) {
+  if (!pool) {
     throw new Error('Database not initialized. Call initializeDatabase() first.');
   }
-  return db;
+  return pool;
 }
 
 module.exports = { initializeDatabase, getDb };
