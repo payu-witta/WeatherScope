@@ -25,8 +25,11 @@ async function getAll(req, res) {
   try {
     const { valid, errors, data: params } = validate(queryParamsSchema, req.query);
     if (!valid) return res.status(400).json({ error: 'Invalid query parameters', details: errors });
-    const records = WeatherRequest.findAll({ limit: params.limit, offset: params.offset });
-    const total = WeatherRequest.count();
+    const location = params.location || null;
+    const [records, total] = await Promise.all([
+      WeatherRequest.findAll({ limit: params.limit, offset: params.offset, location }),
+      WeatherRequest.count(location)
+    ]);
     res.json({ records, pagination: { total, limit: params.limit, offset: params.offset } });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -37,7 +40,7 @@ async function exportData(req, res, next) {
   try {
     const fmt = req.query.format || 'json';
     const format = fmt === 'md' ? 'markdown' : fmt;
-    const records = WeatherRequest.exportAll();
+    const records = await WeatherRequest.exportAll();
     const SUPPORTED = ['json', 'csv', 'xml', 'markdown', 'pdf'];
     if (!SUPPORTED.includes(format)) {
       return res.status(400).json({ error: `Unsupported format. Use: ${SUPPORTED.join(', ')} (or md)` });
@@ -76,7 +79,7 @@ async function exportData(req, res, next) {
 async function getById(req, res) {
   try {
     const id = parseInt(req.params.id, 10);
-    const record = WeatherRequest.findById(id);
+    const record = await WeatherRequest.findById(id);
     if (!record) return res.status(404).json({ error: `Record ${id} not found` });
     res.json({ record });
   } catch (err) {
@@ -89,7 +92,7 @@ async function update(req, res) {
     const id = parseInt(req.params.id, 10);
     const { valid, errors, data } = validate(updateWeatherSchema, req.body);
     if (!valid) return res.status(400).json({ error: 'Validation failed', details: errors });
-    const updated = WeatherRequest.update(id, data);
+    const updated = await WeatherRequest.update(id, data);
     if (!updated) return res.status(404).json({ error: `Record ${id} not found` });
     res.json({ message: 'Record updated successfully', record: updated });
   } catch (err) {
@@ -100,7 +103,7 @@ async function update(req, res) {
 async function remove(req, res) {
   try {
     const id = parseInt(req.params.id, 10);
-    const deleted = WeatherRequest.delete(id);
+    const deleted = await WeatherRequest.delete(id);
     if (!deleted) return res.status(404).json({ error: `Record ${id} not found` });
     res.json({ message: `Record ${id} deleted successfully` });
   } catch (err) {

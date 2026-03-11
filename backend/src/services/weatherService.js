@@ -30,7 +30,7 @@ async function fetchAndStoreWeather(location, startDate, endDate, notes) {
 
   const resolvedLocation = `${geoInfo.name}${geoInfo.country ? ', ' + geoInfo.country : ''}`;
 
-  const record = WeatherRequest.create({
+  const record = await WeatherRequest.create({
     location: resolvedLocation,
     latitude: geoInfo.lat,
     longitude: geoInfo.lon,

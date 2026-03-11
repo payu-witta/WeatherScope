@@ -1,10 +1,5 @@
 require('dotenv').config();
 
-process.on('warning', w => {
-  if (w.name === 'ExperimentalWarning' && w.message.includes('SQLite')) return;
-  console.warn(w.name, w.message);
-});
-
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -26,7 +21,9 @@ app.use('/api/', limiter);
 
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'https://weatherscope.site',
+  'https://www.weatherscope.site'
 ];
 app.use(cors({
   origin: (origin, callback) => {
@@ -42,8 +39,6 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-initializeDatabase();
 
 app.use('/api/weather', weatherRoutes);
 
@@ -64,9 +59,17 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend server running on http://localhost:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+async function start() {
+  await initializeDatabase();
+  app.listen(PORT, () => {
+    console.log(`Backend server running on http://localhost:${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
+
+start().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
 
 module.exports = app;
